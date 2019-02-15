@@ -1,7 +1,6 @@
 package com.adqsoft.bdd.story;
 
 import com.adqsoft.bdd.exceptions.StoryParserException;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,13 +125,13 @@ public class StoryParser {
         }
 
         if (shouldAddStep) {
-            scenario.addStep(createStep(stepType, line));
+            scenario.addStep(createStep(scenario, stepType, line));
         }
 
         return stepType;
     }
 
-    private Step createStep(String stepType, String line) {
+    private Step createStep(Scenario scenario, String stepType, String line) {
         String stepDescriptor = line.substring(stepType.length() + 1);
 
         Matcher matcher = STEP_PARAMETERS_PATTERN.matcher(stepDescriptor);
@@ -153,6 +152,7 @@ public class StoryParser {
                 String[] parameterValues = parameter.split(STEP_SPLIT_PIPE_PARAMETERS_PATTERN.pattern());
                 removeQuotesIfNeeded(parameterValues);
                 parameters.add(new StepParameter(StepParameter.ParameterType.TABLE, parameterValues));
+                scenario.setTimesToRepeatForTable(scenario.getTimesToRepeatForTable() + parameterValues.length);
             } else {
                 parameters.add(new StepParameter(StepParameter.ParameterType.SIMPLE, new String[] { parameter }));
             }

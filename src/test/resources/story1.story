@@ -25,3 +25,11 @@ Scenario: Third Scenario on First Test
 Given this method works
 When we print the text <"method, One",methodTwo>
 Then we assert this is <methodOne>
+
+Scenario: Third Scenario on First Test
+@Meta sanity
+@id 456
+@platform unix
+Given this method works
+When we print the text <"method, One",methodTwo> but <methodThree>
+Then we assert this is <methodOne>

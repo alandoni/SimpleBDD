@@ -91,7 +91,7 @@ public abstract class Runner {
         if (step.getMethod() == null || (scenarioResult.getResult() != ScenarioResult.Result.SUCCESS && getConfiguration().isSkipPendingStepsOnFailure())) {
             result = new StepResult(StepResult.Result.PENDING);
         } else {
-            result = runMethod(step.getMethod());
+            result = runMethod(step);
         }
 
         reporter.afterStep(step, result);
@@ -135,10 +135,16 @@ public abstract class Runner {
         }
     }
 
-    private StepResult runMethod(Method method) {
+    private StepResult runMethod(Step step) {
         try {
+            Method method = step.getMethod();
             Object instance = Class.forName(method.getDeclaringClass().getName()).newInstance();
-            method.invoke(instance);
+
+            if (step instanceof ParameterizedStep) {
+                method.invoke(instance, ((ParameterizedStep) step).getParameters());
+            } else {
+                method.invoke(instance);
+            }
             return new StepResult(StepResult.Result.SUCCESS);
         } catch (Throwable e) {
             return new StepResult(StepResult.Result.FAIL, e);

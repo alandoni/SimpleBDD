@@ -11,6 +11,7 @@ public class Scenario {
     private Map<String, String> meta = new HashMap<String, String>();
     private List<Step> steps = new ArrayList<Step>();
     private List<String> comments = new ArrayList<String>();
+    private int timesToRepeatForTable;
 
     public String getName() {
         return name;
@@ -54,5 +55,13 @@ public class Scenario {
 
     public void addComment(String comment) {
         comments.add(comment);
+    }
+
+    public int getTimesToRepeatForTable() {
+        return timesToRepeatForTable;
+    }
+
+    public void setTimesToRepeatForTable(int timesToRepeatForTable) {
+        this.timesToRepeatForTable = timesToRepeatForTable;
     }
 }
