@@ -23,7 +23,7 @@ Scenario: Third Scenario on First Test
 @id 456
 @platform unix
 Given this method works
-When we print the text <"method, One",methodTwo>
+When we print the texts <"method, One",methodTwo>
 Then we assert this is <methodOne>
 
 Scenario: Third Scenario on First Test

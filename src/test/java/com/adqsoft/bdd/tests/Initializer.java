@@ -3,7 +3,7 @@ package com.adqsoft.bdd.tests;
 import com.adqsoft.bdd.core.Configuration;
 import com.adqsoft.bdd.core.Runner;
 import com.adqsoft.bdd.reporter.ReporterInterface;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;

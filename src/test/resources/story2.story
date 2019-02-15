@@ -1,7 +1,7 @@
 Scenario: First Scenario on Story2
 Given this method works
 When we print the texts <methodOne,methodTwo>
-Then we assert this is <methodOne,methodTwo>
+Then we assert these are <methodOne,methodTwo>
 
 Scenario: Second Scenario on Story2
 Given this method works

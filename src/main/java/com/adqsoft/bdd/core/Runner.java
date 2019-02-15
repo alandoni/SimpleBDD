@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class Runner {
 
@@ -88,7 +92,8 @@ public abstract class Runner {
         reporter.beforeStep(step);
         StepResult result;
 
-        if (step.getMethod() == null || (scenarioResult.getResult() != ScenarioResult.Result.SUCCESS && getConfiguration().isSkipPendingStepsOnFailure())) {
+        if (step.getMethod() == null || (scenarioResult.getResult() !=
+                ScenarioResult.Result.SUCCESS && getConfiguration().isSkipPendingStepsOnFailure())) {
             result = new StepResult(StepResult.Result.PENDING);
         } else {
             result = runMethod(step);
@@ -128,7 +133,12 @@ public abstract class Runner {
         T annotation = (T) method.getAnnotation(type);
         if (annotation != null) {
             String value = (String) annotation.getClass().getMethod("value").invoke(annotation);
-            if (step.getDescriptor().equals(value) && step.getStepType().equals(tag)) {
+
+            String regex = "^" + value.replaceAll(StoryParser.STEP_PARAMETERS_PATTERN.pattern(), "[a-zA-Z0-9\",|\\\\s]+") + "$";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(step.getDescriptor());
+
+            if (matcher.find() && step.getStepType().equals(tag)) {
                 method.setAccessible(true);
                 step.setMethod(method);
             }
@@ -141,7 +151,7 @@ public abstract class Runner {
             Object instance = Class.forName(method.getDeclaringClass().getName()).newInstance();
 
             if (step instanceof ParameterizedStep) {
-                method.invoke(instance, ((ParameterizedStep) step).getParameters());
+                method.invoke(instance, getParametersFromStep((ParameterizedStep) step));
             } else {
                 method.invoke(instance);
             }
@@ -149,6 +159,21 @@ public abstract class Runner {
         } catch (Throwable e) {
             return new StepResult(StepResult.Result.FAIL, e);
         }
+    }
+
+    private Object[] getParametersFromStep(ParameterizedStep step) {
+        List<Object> parameters = new ArrayList<Object>();
+
+        for (StepParameter stepParameter : step.getParameters()) {
+            String[] parametersInStep = stepParameter.getParameters();
+            if (parametersInStep.length == 1) {
+                parameters.add(parametersInStep[0]);
+            } else {
+                parameters.add(parametersInStep);
+            }
+        }
+
+        return parameters.toArray(new Object[parameters.size()]);
     }
 
     public abstract Configuration getConfiguration();

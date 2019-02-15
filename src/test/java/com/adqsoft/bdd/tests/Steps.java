@@ -30,7 +30,7 @@ public class Steps {
         }
     }
 
-    @Then("we assert this is <methods>")
+    @Then("we assert these are <methods>")
     private void assertTexts(String[] texts) {
         for (String text : texts) {
             assertText(text);
@@ -45,5 +45,10 @@ public class Steps {
     @Then("we assert this")
     private void assertThis() {
         System.out.println("assert this");
+    }
+
+    @When("we print the text <methods> but <method>")
+    private void printTwoParams(String[] texts, String text) {
+        System.out.println("Print two texts");
     }
 }
