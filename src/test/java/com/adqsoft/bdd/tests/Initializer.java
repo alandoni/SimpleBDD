@@ -1,6 +1,7 @@
 package com.adqsoft.bdd.tests;
 
 import com.adqsoft.bdd.core.Configuration;
+import com.adqsoft.bdd.core.MetafilterInterface;
 import com.adqsoft.bdd.core.Runner;
 import com.adqsoft.bdd.reporter.ReporterInterface;
 import org.junit.Test;
@@ -16,7 +17,12 @@ public class Initializer {
             public Configuration getConfiguration() {
                 return Configuration.mostUsefulConfiguration().setFailBuildOnFailure(true)
                         .setNumberOfRetries(3)
-                        .setReporters(new ReporterInterface[] { new PrintLnReporter() } );
+                        .setReporters(new ReporterInterface[] { new PrintLnReporter() } )
+                        .setMetafilterInterface(new MetafilterInterface() {
+                            public boolean shouldRunScenario(String metaName, String value) {
+                                return metaName.equals("only");
+                            }
+                        });
             }
 
             public String getStoryPath() {

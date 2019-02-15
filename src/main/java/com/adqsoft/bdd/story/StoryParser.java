@@ -148,6 +148,7 @@ public class StoryParser {
                 String[] parameterValues = parameter.split(STEP_SPLIT_COMMA_PARAMETERS_PATTERN.pattern());
                 removeQuotesIfNeeded(parameterValues);
                 parameters.add(new StepParameter(StepParameter.ParameterType.ARRAY, parameterValues));
+                scenario.setTimesToRepeatForTable(1);
             } else if (matcherSplitPipe.find()) {
                 String[] parameterValues = parameter.split(STEP_SPLIT_PIPE_PARAMETERS_PATTERN.pattern());
                 removeQuotesIfNeeded(parameterValues);
@@ -155,6 +156,7 @@ public class StoryParser {
                 scenario.setTimesToRepeatForTable(scenario.getTimesToRepeatForTable() + parameterValues.length);
             } else {
                 parameters.add(new StepParameter(StepParameter.ParameterType.SIMPLE, new String[] { parameter }));
+                scenario.setTimesToRepeatForTable(1);
             }
         }
 

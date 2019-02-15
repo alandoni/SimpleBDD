@@ -1,6 +1,9 @@
 package com.adqsoft.bdd.core;
 
 import com.adqsoft.bdd.reporter.ReporterInterface;
+import com.adqsoft.bdd.story.Scenario;
+
+import java.util.Map;
 
 public class Configuration {
 
@@ -9,6 +12,7 @@ public class Configuration {
     private boolean failBuildOnFailure;
     private ReporterInterface[] reporters;
     private boolean skipPendingStepsOnFailure;
+    private MetafilterInterface metafilterInterface;
 
     public Configuration setNumberOfRetries(int retries) {
         this.retries = retries;
@@ -61,5 +65,26 @@ public class Configuration {
 
     public boolean isSkipPendingStepsOnFailure() {
         return skipPendingStepsOnFailure;
+    }
+
+
+
+    protected boolean shouldRunScenario(Scenario scenario) {
+        for (Map.Entry<String, String> entry : scenario.getMeta().entrySet()) {
+            boolean shouldRun = metafilterInterface.shouldRunScenario(entry.getKey(), entry.getValue());
+            if (shouldRun) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public MetafilterInterface getMetafilterInterface() {
+        return metafilterInterface;
+    }
+
+    public Configuration setMetafilterInterface(MetafilterInterface metafilterInterface) {
+        this.metafilterInterface = metafilterInterface;
+        return this;
     }
 }

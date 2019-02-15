@@ -5,7 +5,6 @@ Scenario: First Scenario on First Test
 @Meta smoke
 @id 123
 @platform windows
-@only
 Given this method works
 When we call this one
 Then we assert this
@@ -22,6 +21,7 @@ Scenario: Third Scenario on First Test
 @Meta sanity
 @id 456
 @platform unix
+@only
 Given this method works
 When we print the texts <"method, One",methodTwo>
 Then we assert this is <methodOne>

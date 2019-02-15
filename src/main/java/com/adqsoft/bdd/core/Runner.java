@@ -53,8 +53,10 @@ public abstract class Runner {
         for (Scenario scenario : story.getScenarios()) {
             ScenarioResult scenarioResult = runScenario(scenario, reporter);
 
-            if (scenarioResult.getResult() != ScenarioResult.Result.SUCCESS) {
-                storyResult = new Result(Result.ResultType.FAIL, scenarioResult.getThrowable());
+            if (scenarioResult != null) {
+                if (scenarioResult.getResult() != ScenarioResult.Result.SUCCESS) {
+                    storyResult = new Result(Result.ResultType.FAIL, scenarioResult.getThrowable());
+                }
             }
         }
         reporter.afterStory(story, storyResult);
@@ -62,9 +64,13 @@ public abstract class Runner {
     }
 
     private ScenarioResult runScenario(Scenario scenario, ReporterController reporter) {
+        if (!getConfiguration().shouldRunScenario(scenario)) {
+            return null;
+        }
+
         ScenarioResult scenarioResult = new ScenarioResult(ScenarioResult.Result.SUCCESS);
         Configuration configuration = getConfiguration();
-        int times = 0;
+        int retries = 0;
         boolean flaky = false;
         do {
             reporter.beforeScenario(scenario);
@@ -73,13 +79,13 @@ public abstract class Runner {
 
                 if (result.getResult() != StepResult.Result.SUCCESS) {
                     scenarioResult = new ScenarioResult(ScenarioResult.Result.FAIL, result.getThrowable());
-                } else if (times > 0) {
+                } else if (retries > 0) {
                     flaky = true;
                 }
             }
             reporter.afterScenario(scenario, scenarioResult);
-            times++;
-        } while (scenarioResult.getResult() == ScenarioResult.Result.FAIL && times < configuration.getRetries());
+            retries++;
+        } while (scenarioResult.getResult() == ScenarioResult.Result.FAIL && retries < configuration.getRetries());
 
         if (flaky && !configuration.isFlakyAsFailure()) {
             scenarioResult = new ScenarioResult(ScenarioResult.Result.FLAKY, scenarioResult.getThrowable());
@@ -166,7 +172,7 @@ public abstract class Runner {
 
         for (StepParameter stepParameter : step.getParameters()) {
             String[] parametersInStep = stepParameter.getParameters();
-            if (parametersInStep.length == 1) {
+            if (stepParameter.getParameterType() == StepParameter.ParameterType.SIMPLE) {
                 parameters.add(parametersInStep[0]);
             } else {
                 parameters.add(parametersInStep);
