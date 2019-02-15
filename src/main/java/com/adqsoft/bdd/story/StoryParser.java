@@ -1,6 +1,12 @@
 package com.adqsoft.bdd.story;
 
 import com.adqsoft.bdd.exceptions.StoryParserException;
+import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StoryParser {
 
@@ -12,8 +18,11 @@ public class StoryParser {
     public final static String TAG_GIVEN = "Given";
     public final static String TAG_WHEN = "When";
     public final static String TAG_THEN = "Then";
+    public static final Pattern STEP_PARAMETERS_PATTERN = Pattern.compile("(?<=<)(.*?)(?=>)");
 
     private Story story;
+    public static final Pattern STEP_SPLIT_COMMA_PARAMETERS_PATTERN = Pattern.compile("(,)(?=(?:[^\"]|\"[^\"]*\")*$)");
+    public static final Pattern STEP_SPLIT_PIPE_PARAMETERS_PATTERN = Pattern.compile("(\\|)(?=(?:[^\"]|\"[^\"]*\")*$)");
 
     private static String removeExtensionFromFile(String file) {
         String extension = "";
@@ -124,6 +133,43 @@ public class StoryParser {
     }
 
     private Step createStep(String stepType, String line) {
-        return new Step(stepType, line.substring(stepType.length() + 1));
+        String stepDescriptor = line.substring(stepType.length() + 1);
+
+        Matcher matcher = STEP_PARAMETERS_PATTERN.matcher(stepDescriptor);
+
+        List<StepParameter> parameters = new ArrayList<StepParameter>();
+
+        while (matcher.find()) {
+            String parameter = matcher.group();
+
+            Matcher matcherSplitComma = STEP_SPLIT_COMMA_PARAMETERS_PATTERN.matcher(parameter);
+            Matcher matcherSplitPipe = STEP_SPLIT_PIPE_PARAMETERS_PATTERN.matcher(parameter);
+
+            if (matcherSplitComma.find()) {
+                String[] parameterValues = parameter.split(STEP_SPLIT_COMMA_PARAMETERS_PATTERN.pattern());
+                removeQuotesIfNeeded(parameterValues);
+                parameters.add(new StepParameter(StepParameter.ParameterType.ARRAY, parameterValues));
+            } else if (matcherSplitPipe.find()) {
+                String[] parameterValues = parameter.split(STEP_SPLIT_PIPE_PARAMETERS_PATTERN.pattern());
+                removeQuotesIfNeeded(parameterValues);
+                parameters.add(new StepParameter(StepParameter.ParameterType.TABLE, parameterValues));
+            } else {
+                parameters.add(new StepParameter(StepParameter.ParameterType.SIMPLE, new String[] { parameter }));
+            }
+        }
+
+        if (parameters.size() > 0) {
+            return new ParameterizedStep(stepType, stepDescriptor, parameters.toArray(new StepParameter[parameters.size()]));
+        } else {
+            return new Step(stepType, stepDescriptor);
+        }
+    }
+
+    private void removeQuotesIfNeeded(String[] parameterValues) {
+        for (int i = 0; i < parameterValues.length; i++) {
+            if (parameterValues[i].startsWith("\"") && parameterValues[i].endsWith("\"")) {
+                parameterValues[i] = parameterValues[i].substring(1, parameterValues[i].length() - 1);
+            }
+        }
     }
 }

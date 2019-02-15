@@ -11,26 +11,26 @@ public class Steps {
         System.out.println("This method works!");
     }
 
-    @When("we print the texts \"methods\"")
+    @When("we print the texts <methods>")
     private void printTexts(String[] texts) {
         for (String text : texts) {
             printText(text);
         }
     }
 
-    @When("we print the text \"method\"")
+    @When("we print the text <method>")
     private void printText(String text) {
         System.out.println(text);
     }
 
-    @Then("we assert this is \"method\"")
+    @Then("we assert this is <method>")
     private void assertText(String text) {
         if (!text.contains("method")) {
             throw new RuntimeException("Text doesn't contain \"method\"");
         }
     }
 
-    @Then("we assert this is \"methods\"")
+    @Then("we assert this is <methods>")
     private void assertTexts(String[] texts) {
         for (String text : texts) {
             assertText(text);

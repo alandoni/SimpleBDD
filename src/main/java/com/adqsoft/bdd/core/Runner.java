@@ -21,8 +21,17 @@ public abstract class Runner {
         Configuration configuration = getConfiguration();
 
         ReporterController reporter = new ReporterController(configuration.getReporters());
-        reporter.beforeStories();
+
+        Result storiesResult = runStories(stories, reporter);
+
+        if (configuration.isFailBuildOnFailure()) {
+            Assertions.assertTrue(storiesResult.getResult() == Result.ResultType.SUCCESS);
+        }
+    }
+
+    private Result runStories(Story[] stories, ReporterController reporter) {
         Result storiesResult = new Result(Result.ResultType.SUCCESS);
+        reporter.beforeStories();
         for (Story story : stories) {
             Result storyResult = runStory(story, reporter);
 
@@ -31,44 +40,7 @@ public abstract class Runner {
             }
         }
         reporter.afterStories(storiesResult);
-
-        if (getConfiguration().isFailBuildOnFailure()) {
-            Assertions.assertTrue(storiesResult.getResult() == Result.ResultType.SUCCESS);
-        }
-    }
-
-    private ScenarioResult runScenario(Scenario scenario, ReporterController reporter) {
-        ScenarioResult scenarioResult = new ScenarioResult(ScenarioResult.Result.SUCCESS);
-        int times = 0;
-        boolean flaky = false;
-        do {
-            reporter.beforeScenario(scenario);
-            for (Step step : scenario.getSteps()) {
-                reporter.beforeStep(step);
-                StepResult result;
-                if (step.getMethod() == null) {
-                    result = new StepResult(StepResult.Result.PENDING);
-                } else {
-                    result = runMethod(step.getMethod());
-                }
-                reporter.afterStep(step, result);
-
-                if (result.getResult() != StepResult.Result.SUCCESS) {
-                    scenarioResult = new ScenarioResult(ScenarioResult.Result.FAIL, result.getThrowable());
-                    break;
-                } else if (times > 0) {
-                    flaky = true;
-                }
-            }
-            reporter.afterScenario(scenario, scenarioResult);
-            times++;
-        } while (scenarioResult.getResult() == ScenarioResult.Result.FAIL && times < getConfiguration().getRetries());
-
-        if (flaky && !getConfiguration().isFlakyAsFailure()) {
-            scenarioResult = new ScenarioResult(ScenarioResult.Result.FLAKY, scenarioResult.getThrowable());
-        }
-
-        return scenarioResult;
+        return storiesResult;
     }
 
     private Result runStory(Story story, ReporterController reporter) {
@@ -83,6 +55,47 @@ public abstract class Runner {
         }
         reporter.afterStory(story, storyResult);
         return storyResult;
+    }
+
+    private ScenarioResult runScenario(Scenario scenario, ReporterController reporter) {
+        ScenarioResult scenarioResult = new ScenarioResult(ScenarioResult.Result.SUCCESS);
+        Configuration configuration = getConfiguration();
+        int times = 0;
+        boolean flaky = false;
+        do {
+            reporter.beforeScenario(scenario);
+            for (Step step : scenario.getSteps()) {
+                StepResult result = runStep(reporter, scenarioResult, step);
+
+                if (result.getResult() != StepResult.Result.SUCCESS) {
+                    scenarioResult = new ScenarioResult(ScenarioResult.Result.FAIL, result.getThrowable());
+                } else if (times > 0) {
+                    flaky = true;
+                }
+            }
+            reporter.afterScenario(scenario, scenarioResult);
+            times++;
+        } while (scenarioResult.getResult() == ScenarioResult.Result.FAIL && times < configuration.getRetries());
+
+        if (flaky && !configuration.isFlakyAsFailure()) {
+            scenarioResult = new ScenarioResult(ScenarioResult.Result.FLAKY, scenarioResult.getThrowable());
+        }
+
+        return scenarioResult;
+    }
+
+    private StepResult runStep(ReporterController reporter, ScenarioResult scenarioResult, Step step) {
+        reporter.beforeStep(step);
+        StepResult result;
+
+        if (step.getMethod() == null || (scenarioResult.getResult() != ScenarioResult.Result.SUCCESS && getConfiguration().isSkipPendingStepsOnFailure())) {
+            result = new StepResult(StepResult.Result.PENDING);
+        } else {
+            result = runMethod(step.getMethod());
+        }
+
+        reporter.afterStep(step, result);
+        return result;
     }
 
     private Story[] getStories() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {

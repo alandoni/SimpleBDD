@@ -8,6 +8,7 @@ public class Configuration {
     private boolean flakyAsFailure;
     private boolean failBuildOnFailure;
     private ReporterInterface[] reporters;
+    private boolean skipPendingStepsOnFailure;
 
     public Configuration setNumberOfRetries(int retries) {
         this.retries = retries;
@@ -26,6 +27,11 @@ public class Configuration {
 
     public Configuration setReporters(ReporterInterface[] reporters) {
         this.reporters = reporters;
+        return this;
+    }
+
+    public Configuration setSkipPendingStepsOnFailure(boolean skipPendingStepsOnFailure) {
+        this.skipPendingStepsOnFailure = skipPendingStepsOnFailure;
         return this;
     }
 
@@ -51,5 +57,9 @@ public class Configuration {
                 .setFlakyAsFailure(false)
                 .setNumberOfRetries(1)
                 .setReporters(null);
+    }
+
+    public boolean isSkipPendingStepsOnFailure() {
+        return skipPendingStepsOnFailure;
     }
 }
