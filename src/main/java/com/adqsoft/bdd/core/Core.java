@@ -12,7 +12,7 @@ public class Core {
 
     public static void main(String[] args) throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         new Runner() {
-            public Configuration getConfiguration() {
+            public Configuration configure() {
                 return Configuration.mostUsefulConfiguration().setFailBuildOnFailure(true)
                         .setNumberOfRetries(3)
                         .setReporters(null);

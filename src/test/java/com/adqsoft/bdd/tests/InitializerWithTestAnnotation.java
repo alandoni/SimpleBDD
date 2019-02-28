@@ -9,15 +9,15 @@ import org.junit.Test;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-public class Initializer {
+public class InitializerWithTestAnnotation {
 
     @Test
     public void test() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         new Runner() {
-            public Configuration getConfiguration() {
+            public Configuration configure() {
                 return Configuration.mostUsefulConfiguration().setFailBuildOnFailure(true)
                         .setNumberOfRetries(3)
-                        .setReporters(new ReporterInterface[] { new PrintLnReporter() } )
+                        .addReporter(new PrintLnReporter())
                         .setMetafilterInterface(new MetafilterInterface() {
                             public boolean shouldRunScenario(String metaName, String value) {
                                 return metaName.equals("only");

@@ -3,6 +3,9 @@ package com.adqsoft.bdd.core;
 import com.adqsoft.bdd.reporter.ReporterInterface;
 import com.adqsoft.bdd.story.Scenario;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class Configuration {
@@ -10,7 +13,7 @@ public class Configuration {
     private int retries;
     private boolean flakyAsFailure;
     private boolean failBuildOnFailure;
-    private ReporterInterface[] reporters;
+    private List<ReporterInterface> reporters = new ArrayList<ReporterInterface>();
     private boolean skipPendingStepsOnFailure;
     private MetafilterInterface metafilterInterface;
 
@@ -29,8 +32,13 @@ public class Configuration {
         return this;
     }
 
-    public Configuration setReporters(ReporterInterface[] reporters) {
+    public Configuration setReporters(List<ReporterInterface> reporters) {
         this.reporters = reporters;
+        return this;
+    }
+
+    public Configuration addReporter(ReporterInterface reporter) {
+        reporters.add(reporter);
         return this;
     }
 
@@ -51,7 +59,7 @@ public class Configuration {
         return failBuildOnFailure;
     }
 
-    public ReporterInterface[] getReporters() {
+    public List<ReporterInterface> getReporters() {
         return reporters;
     }
 
@@ -59,15 +67,12 @@ public class Configuration {
         return new Configuration()
                 .setFailBuildOnFailure(true)
                 .setFlakyAsFailure(false)
-                .setNumberOfRetries(1)
-                .setReporters(null);
+                .setNumberOfRetries(1);
     }
 
     public boolean isSkipPendingStepsOnFailure() {
         return skipPendingStepsOnFailure;
     }
-
-
 
     protected boolean shouldRunScenario(Scenario scenario) {
         for (Map.Entry<String, String> entry : scenario.getMeta().entrySet()) {

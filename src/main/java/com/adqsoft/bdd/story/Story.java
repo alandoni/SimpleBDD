@@ -40,4 +40,13 @@ public class Story {
     public void addComment(String comment) {
         comments.add(comment);
     }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 1;
+        hashCode = 31 * hashCode + getName().hashCode();
+        hashCode = 31 * hashCode + getScenarios().hashCode();
+        hashCode = 31 * hashCode + getComments().hashCode();
+        return hashCode;
+    }
 }

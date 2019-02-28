@@ -40,4 +40,11 @@ public class Step {
     public String toString() {
         return getStepType() + " " + getDescriptor();
     }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 1;
+        hashCode = 31 * hashCode + getDescriptor().hashCode();
+        return hashCode;
+    }
 }

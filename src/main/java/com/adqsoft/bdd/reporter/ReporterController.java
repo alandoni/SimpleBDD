@@ -2,6 +2,8 @@ package com.adqsoft.bdd.reporter;
 
 import com.adqsoft.bdd.story.*;
 
+import java.util.List;
+
 public class ReporterController implements ReporterInterface {
 
     private final ReporterInterface[] reporters;
@@ -9,7 +11,7 @@ public class ReporterController implements ReporterInterface {
     public ReporterController(ReporterInterface[] reporters) {
         this.reporters = reporters;
     }
-    
+
     public void beforeStories() {
         if (this.reporters == null) {
             return;

@@ -1,5 +1,6 @@
 package com.adqsoft.bdd.story;
 
+import com.adqsoft.bdd.core.junit.JUnitUniqueDescription;
 import com.adqsoft.bdd.exceptions.StoryParserException;
 
 import java.util.ArrayList;
@@ -18,10 +19,15 @@ public class StoryParser {
     public final static String TAG_WHEN = "When";
     public final static String TAG_THEN = "Then";
     public static final Pattern STEP_PARAMETERS_PATTERN = Pattern.compile("(?<=<)(.*?)(?=>)");
+    private final JUnitUniqueDescription junitUniqueDescription;
 
     private Story story;
     public static final Pattern STEP_SPLIT_COMMA_PARAMETERS_PATTERN = Pattern.compile("(,)(?=(?:[^\"]|\"[^\"]*\")*$)");
     public static final Pattern STEP_SPLIT_PIPE_PARAMETERS_PATTERN = Pattern.compile("(\\|)(?=(?:[^\"]|\"[^\"]*\")*$)");
+
+    public StoryParser() {
+        junitUniqueDescription = new JUnitUniqueDescription();
+    }
 
     private static String removeExtensionFromFile(String file) {
         String extension = "";
@@ -34,15 +40,19 @@ public class StoryParser {
         return file.substring(0, file.length() - extension.length());
     }
 
+    private String uniqueName(String name) {
+        return junitUniqueDescription.getUniqueDescription(name);
+    }
+
     public Story parse(String fileName, String[] contentsOfFile) {
         story = new Story();
-        story.setName(removeExtensionFromFile(fileName));
+        story.setName(removeExtensionFromFile(uniqueName(fileName)));
 
         Scenario currentScenario = null;
         String lastStepType = null;
         for (String line : contentsOfFile) {
             if (line.startsWith(TAG_STORY_NAME)) {
-                story.setName(line.substring(TAG_STORY_NAME.length()));
+                story.setName(uniqueName(line.substring(TAG_STORY_NAME.length())));
             }
 
             Scenario scenario = parseScenario(line);
@@ -60,7 +70,7 @@ public class StoryParser {
         Scenario scenario = null;
         if (line.startsWith(TAG_SCENARIO_NAME)) {
             scenario = new Scenario();
-            scenario.setName(line.substring(TAG_SCENARIO_NAME.length()));
+            scenario.setName(uniqueName(line.substring(TAG_SCENARIO_NAME.length())));
             story.addScenario(scenario);
         }
         return scenario;
@@ -132,7 +142,7 @@ public class StoryParser {
     }
 
     private Step createStep(Scenario scenario, String stepType, String line) {
-        String stepDescriptor = line.substring(stepType.length() + 1);
+        String stepDescriptor = uniqueName(line.substring(stepType.length() + 1));
 
         Matcher matcher = STEP_PARAMETERS_PATTERN.matcher(stepDescriptor);
 

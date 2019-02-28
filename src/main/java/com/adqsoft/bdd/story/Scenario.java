@@ -64,4 +64,15 @@ public class Scenario {
     public void setTimesToRepeatForTable(int timesToRepeatForTable) {
         this.timesToRepeatForTable = timesToRepeatForTable;
     }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 1;
+        hashCode = 31 * hashCode + getName().hashCode();
+        hashCode = 31 * hashCode + getSteps().hashCode();
+        hashCode = 31 * hashCode + getMeta().hashCode();
+        hashCode = 31 * hashCode + getTimesToRepeatForTable();
+        hashCode = 31 * hashCode + getComments().hashCode();
+        return hashCode;
+    }
 }

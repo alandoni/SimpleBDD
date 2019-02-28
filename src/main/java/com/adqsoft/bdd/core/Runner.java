@@ -6,6 +6,7 @@ import com.adqsoft.bdd.annotations.When;
 import com.adqsoft.bdd.reporter.ReporterController;
 import com.adqsoft.bdd.reporter.ReporterInterface;
 import com.adqsoft.bdd.story.*;
+import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
 import java.io.IOException;
@@ -19,12 +20,18 @@ import java.util.regex.Pattern;
 
 public abstract class Runner {
 
+    private Configuration configuration;
+
+    public Runner() {
+        configuration = configure();
+    }
+
+    @Test
     public void run() throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         Story[] stories = getStories();
 
-        Configuration configuration = getConfiguration();
-
-        ReporterController reporter = new ReporterController(configuration.getReporters());
+        ReporterController reporter = new ReporterController(
+                configuration.getReporters().toArray(new ReporterInterface[configuration.getReporters().size()]));
 
         Result storiesResult = runStories(stories, reporter);
 
@@ -48,7 +55,7 @@ public abstract class Runner {
     }
 
     private Result runStory(Story story, ReporterController reporter) {
-        Result storyResult = new Result(Result.ResultType.SUCCESS);;
+        Result storyResult = new Result(Result.ResultType.SUCCESS);
         reporter.beforeStory(story);
         for (Scenario scenario : story.getScenarios()) {
             ScenarioResult scenarioResult = runScenario(scenario, reporter);
@@ -64,12 +71,11 @@ public abstract class Runner {
     }
 
     private ScenarioResult runScenario(Scenario scenario, ReporterController reporter) {
-        if (!getConfiguration().shouldRunScenario(scenario)) {
+        if (!configuration.shouldRunScenario(scenario)) {
             return null;
         }
 
         ScenarioResult scenarioResult = new ScenarioResult(ScenarioResult.Result.SUCCESS);
-        Configuration configuration = getConfiguration();
         int retries = 0;
         boolean flaky = false;
         do {
@@ -99,7 +105,7 @@ public abstract class Runner {
         StepResult result;
 
         if (step.getMethod() == null || (scenarioResult.getResult() !=
-                ScenarioResult.Result.SUCCESS && getConfiguration().isSkipPendingStepsOnFailure())) {
+                ScenarioResult.Result.SUCCESS && configuration.isSkipPendingStepsOnFailure())) {
             result = new StepResult(StepResult.Result.PENDING);
         } else {
             result = runMethod(step);
@@ -109,7 +115,7 @@ public abstract class Runner {
         return result;
     }
 
-    private Story[] getStories() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public Story[] getStories() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Story[] stories = StoryReader.findStoriesByPath(getStoryPath());
         Method[] methods = StepsScanner.scanStepsOnPackage(getStepsPackage());
 
@@ -182,7 +188,11 @@ public abstract class Runner {
         return parameters.toArray(new Object[parameters.size()]);
     }
 
-    public abstract Configuration getConfiguration();
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
+    public abstract Configuration configure();
 
     public abstract String getStoryPath();
 
